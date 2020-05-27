@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            div, #root {
+                align-content: center;
+                text-align: center;
+                width: max-width;
+                display: flex;
+                flex-direction: column;
+            }
+            div, .form-group {
+                display: flex;
+                flex-direction: row;
+            }
+            input {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                display: inline-block; 
+                vertical-align: middle;
+                margin-left: 20px;
+                width: min-content;
+            }
+
+            label {
+                display:inline-block;
+                padding-top: 5px;
+                text-align: left;
+                width: 140px;
+            }
+            p, #copyright{
+                font-size: 10px;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id='root'>
+            <h3>Simple Video Controller</h3>
+
+            <div class='form-group'>
+                <label>Increase Speed Key: </label>
+                <input id='increaseSpeedKey' type='text'/>
+            </div>
+            
+            <div class='form-group'>
+                <label>Decrease Speed Key: </label>
+                <input id='decreaseSpeedKey' type='text'/>
+            </div>
+
+            <div class='form-group'>
+                <label>Toggle Overlay Key: </label>
+                <input id='toggleOverlayKey' type='text'/>
+            </div>
+            
+            <div class='form-group'>
+                <label>Speed Modifier: </label>
+                <input id='speedModifier' type='number' step='0.1'/>
+            </div>
+
+            <div class='form-group'>
+                <label>Persist Speed: </label>
+                <input id='persistentSpeed' type='checkbox'/>
+            </div>
+
+            <div class='form-group'>
+                <label>Show Overlay: </label>
+                <input id='showOverlay' type='checkbox'/>
+            </div>
+
+            <p id='copyright'>&#169; Spencer Gritton, 2020</p>
+        </div>
+        <script src='popup.js'></script>
+    </body>
+</html>
