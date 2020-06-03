@@ -1,66 +1,50 @@
+// Settings stores plugin storage so calls are not async to get needed info
 let settings = {}
+let videos = undefined;
 
-var videos = document.getElementsByTagName('video') 
+runContentScript(); // Run on page load
 
-// Set settings object to chrome storage
-chrome.storage.sync.get(null, function(items) {
-    settings = items;
-
-    // If persistent speed, set all videos on page to persistent speed
-    if (settings.persistentSpeed) {
-        for( const video of videos ){ 
-            video.playbackRate = settings.persistentCurrentSpeed;
+// Listener that reloads plugin when user loads new page on some sites like youtube
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        // listen for messages sent from background.js
+        if (request.message === 'url_change') {
+            // alert(request.url)
+            runContentScript(); // Run on URL change
         }
-    }
-
-    // Initialize speedometer
-    initializeOverlay();
 });
 
-// Add event listeners for keydowns to trigger plugin functionality
-var docs = Array(document);
-docs.forEach(function (doc) {
-    doc.addEventListener(
-        "keydown",
-        function (event) {
-            log(event, 1)
-            let key = event.key.toUpperCase();
+// Main function that runs the content script. This is called either when a new URL is 
+// detected inside the current website or if the user navigates to a new website entirely
+// Unsure why these are distinct events.. (further research needed)
+function runContentScript() {
+    videos = document.getElementsByTagName('video');
 
-            // Ignore key press if modified
-            if (
-                !event.getModifierState ||
-                event.getModifierState("Alt") ||
-                event.getModifierState("Control") ||
-                event.getModifierState("Fn") ||
-                event.getModifierState("Meta") ||
-                event.getModifierState("Hyper") ||
-                event.getModifierState("OS")
-            ) {
-                log('Keydown event ignored due to active modifier', 1);
-                return;
+    // Set settings object to chrome storage
+    chrome.storage.sync.get(null, function(items) {
+        settings = items;
+
+        // If persistent speed, set all videos on page to persistent speed
+        if (settings.persistentSpeed) {
+            for( const video of videos ){ 
+                video.playbackRate = settings.persistentCurrentSpeed;
             }
+        }
 
-            // Ignore key press if user is typing in a field
-            if (
-                event.target.nodeName === "INPUT" ||
-                event.target.nodeName === "TEXTAREA" ||
-                event.target.isContentEditable
-            ) {
-                log('Keydown event ignored due to typing in a field', 1);
-                return;
-            }
+        // Initialize speedometer
+        initializeOverlay();
 
-            // Ignore key press if there there is no video controller
-            if (document.getElementsByClassName('svc-div').length === 0) {
-                log('Keydown event ignored due to no video controller on page', 1);
-                return;
-            }
-
-            executeKeyPress(key);
-        },
-        false
-    );
-});
+         // Add event listeners for keydowns to trigger plugin functionality
+        var docs = Array(document);
+        docs.forEach(function (doc) {
+            doc.addEventListener(
+                "keydown",
+                keypress,
+                false
+            );
+        });
+    });
+}
 
 // Logger
 function log(message, level) {
@@ -74,9 +58,11 @@ function log(message, level) {
 
 // Initialize Overlay
 function initializeOverlay() {
-    if (document.getElementsByClassName('svc-div').length > 0) {
-        log('Already overlay on this page', 1);
-        return;
+    const svcDivs = document.getElementsByClassName('svc-div');
+    if (svcDivs.length > 0) {
+        // If there are already svcDivs (like on a URL change on youtube)
+        // Delete them all then add them back fresh
+        removeOverlaysAndListeners();
     }
 
     // Create overlay for each video on page
@@ -109,36 +95,76 @@ function initializeOverlay() {
 
         // Append text to overlay and overlay to DOM
         svcDiv.appendChild(text);
-        if (!settings.showOverlay) { srcDiv.style.display = 'none'; }
+        if (!settings.showOverlay) { svcDiv.style.display = 'none'; }
         video.parentNode.insertAdjacentElement('afterbegin', svcDiv);
     }
 }
 
-// Tests if the given key matches any key combos
-// If matching then execute the shortcut
+// Function called when key is pressed to attempt to call hotkey/shortcut
+function keypress(event) {
+    log(event, 1)
+    let key = event.key.toUpperCase();
 
-// TODO: FIGURE OUT HOW TO IMPLEMENT PERSISTENT SPEED HERE
-function executeKeyPress(key) {
+    // Ignore key press if modified
+    if (
+        !event.getModifierState ||
+        event.getModifierState("Alt") ||
+        event.getModifierState("Control") ||
+        event.getModifierState("Fn") ||
+        event.getModifierState("Meta") ||
+        event.getModifierState("Hyper") ||
+        event.getModifierState("OS")
+    ) {
+        log('Keydown event ignored due to active modifier', 1);
+        return;
+    }
+
+    // Ignore key press if user is typing in a field
+    if (
+        event.target.nodeName === "INPUT" ||
+        event.target.nodeName === "TEXTAREA" ||
+        event.target.isContentEditable
+    ) {
+        log('Keydown event ignored due to typing in a field', 1);
+        return;
+    }
+
+    // Ignore key press if there there is no video controller
+    if (document.getElementsByClassName('svc-div').length === 0) {
+        log('Keydown event ignored due to no video controller on page', 1);
+        return;
+    }
+
+    executeKeyPress(key, videos);
+}
+
+// Tests if the given key press matches any known key combos
+// If matching then execute whatever the key should do
+function executeKeyPress(key, videos) {
     if (key === settings.increaseSpeedKey) {
-        const svcPs = document.getElementsByClassName('svc-p');
-        // if (newSpeed > 15) { return; }
-        for (const p of svcPs) {
-            p.innerText = (parseFloat(p.innerText) + settings.speedModifier).toFixed(2);
-        }
-
         for (const video of videos) {
-            video.playbackRate = video.playbackRate + settings.speedModifier
+            let svcPs = video.parentElement.getElementsByClassName('svc-p')
+            if ( svcPs.length === 1 ) {
+                let svcP = svcPs[0];
+                let newSpeed = video.playbackRate + settings.speedModifier
+                if (newSpeed <= 15) {
+                    video.playbackRate = newSpeed
+                    svcP.innerText = newSpeed.toFixed(2);
+                }
+            }
         }
     }
     else if (key === settings.decreaseSpeedKey) {
-        const svcPs = document.getElementsByClassName('svc-p');
-         // if (newSpeed <= 0) { return; }
-        for (const p of svcPs) {
-            p.innerText = (parseFloat(p.innerText) - settings.speedModifier).toFixed(2);
-        }
-
         for (const video of videos) {
-            video.playbackRate = video.playbackRate - settings.speedModifier
+            let svcPs = video.parentElement.getElementsByClassName('svc-p')
+            if ( svcPs.length === 1 ) {
+                let svcP = svcPs[0];
+                let newSpeed = video.playbackRate - settings.speedModifier
+                if (newSpeed >= 0.1) {
+                    video.playbackRate = newSpeed
+                    svcP.innerText = newSpeed.toFixed(2);
+                }
+            }
         }
     }
     else if (key === settings.toggleOverlayKey) {
@@ -153,4 +179,17 @@ function executeKeyPress(key) {
         log('Input key matches no given key combos', 1);
         return;
     }
+}
+
+// This function removes all current overlays and event listeners on the page
+function removeOverlaysAndListeners() {
+    let overlays = document.getElementsByClassName('svc-div');
+    for (const div of overlays) {
+        div.remove();
+    }
+
+    var docs = Array(document);
+    docs.forEach(function (doc) {
+        doc.removeEventListener("keydown", keypress);
+    });
 }

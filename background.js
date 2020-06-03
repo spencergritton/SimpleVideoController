@@ -1,5 +1,5 @@
+// Initialize plugin on install
 chrome.runtime.onInstalled.addListener(function() {
-    // Initialize plugin on install
     console.log("Installed plugin")
     chrome.storage.sync.set(
         {
@@ -14,6 +14,20 @@ chrome.runtime.onInstalled.addListener(function() {
     );
 });
 
+// Listens for URL changes and sends them to the content script to update page
+chrome.tabs.onUpdated.addListener(
+    function(tabId, changeInfo, tab) {
+        // read changeInfo data and do something with it
+        if (changeInfo.url) {
+            chrome.tabs.sendMessage( tabId, {
+                message: 'url_change',
+                url: changeInfo.url
+            })
+        }
+    }
+);
+
+// Logger
 chrome.runtime.onMessage.addListener(function(request) {
     if (request.type === 'console') {
         console.log(request.message)

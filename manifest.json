@@ -3,7 +3,8 @@
     "version": "0.1.0",
     "description": "Simple open source HTML5 video speed controller",
     "permissions": [
-        "storage"
+        "storage",
+        "tabs"
     ],
     "background": {
         "scripts": ["background.js"],
