@@ -50,6 +50,7 @@ speedModifier.addEventListener('change', (e) => {
 persistentSpeed.addEventListener('change', (e) => {
     const newPersistentSpeed = e.target.checked
     chrome.storage.sync.set( {'persistentSpeed': newPersistentSpeed} );
+    chrome.runtime.sendMessage({'type': 'refresh'});
 });
 
 // Listen for show overlay checkbox changes

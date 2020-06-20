@@ -1,18 +1,19 @@
 // Settings stores plugin storage so calls are not async to get needed info
-let settings = {}
-let videos = undefined;
+var settings = {}
+var videos = undefined;
 
-runContentScript(); // Run on page load
-
-// Listener that reloads plugin when user loads new page on some sites like youtube
+// Runs before page change on SPA's with persistent speed to remove event
+// listeners from DOM
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        // listen for messages sent from background.js
-        if (request.message === 'url_change') {
-            // alert(request.url)
-            runContentScript(); // Run on URL change
+        if (request.message === "url_change") {
+            if (settings.persistentSpeed) {
+                removeOverlaysAndListeners();
+            }
         }
 });
+
+runContentScript(); // Run on page load
 
 // Main function that runs the content script. This is called either when a new URL is 
 // detected inside the current website or if the user navigates to a new website entirely
@@ -37,6 +38,8 @@ function runContentScript() {
          // Add event listeners for keydowns to trigger plugin functionality
         var docs = Array(document);
         docs.forEach(function (doc) {
+            doc.removeEventListener("keydown", keypress);
+
             doc.addEventListener(
                 "keydown",
                 keypress,
@@ -80,10 +83,11 @@ function initializeOverlay() {
 
         // Create text inside overlay
         let text = document.createElement('P');
+
         if (settings.persistentSpeed) {
             text.innerText = '' + settings.persistentCurrentSpeed.toFixed(2);
         } else {
-            text.innerText = video.playbackRate
+            text.innerText = video.playbackRate.toFixed(2)
         }
         text.className = 'svc-p';
         text.style.position = 'relative';
@@ -102,7 +106,7 @@ function initializeOverlay() {
 
 // Function called when key is pressed to attempt to call hotkey/shortcut
 function keypress(event) {
-    log(event, 1)
+    log(event, settings.logLevel)
     let key = event.key.toUpperCase();
 
     // Ignore key press if modified
@@ -115,7 +119,7 @@ function keypress(event) {
         event.getModifierState("Hyper") ||
         event.getModifierState("OS")
     ) {
-        log('Keydown event ignored due to active modifier', 1);
+        log('Keydown event ignored due to active modifier', settings.logLevel);
         return;
     }
 
@@ -125,13 +129,13 @@ function keypress(event) {
         event.target.nodeName === "TEXTAREA" ||
         event.target.isContentEditable
     ) {
-        log('Keydown event ignored due to typing in a field', 1);
+        log('Keydown event ignored due to typing in a field', settings.logLevel);
         return;
     }
 
     // Ignore key press if there there is no video controller
     if (document.getElementsByClassName('svc-div').length === 0) {
-        log('Keydown event ignored due to no video controller on page', 1);
+        log('Keydown event ignored due to no video controller on page', settings.logLevel);
         return;
     }
 
@@ -176,7 +180,7 @@ function executeKeyPress(key, videos) {
         settings.showOverlay = !settings.showOverlay;
     }
     else {
-        log('Input key matches no given key combos', 1);
+        log('Input key matches no given key combos', settings.logLevel);
         return;
     }
 }

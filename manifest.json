@@ -4,7 +4,9 @@
     "description": "Simple open source HTML5 video speed controller",
     "permissions": [
         "storage",
-        "tabs"
+        "tabs",
+        "webNavigation",
+        "*://*.youtube.com/*"
     ],
     "background": {
         "scripts": ["background.js"],
@@ -13,9 +15,11 @@
     "browser_action": {
         "default_popup": "popup.html"
     },
-    "content_scripts": [{
-        "js": ["content.js"],
-        "matches": ["<all_urls>"]
-    }],
+    "content_scripts": [
+        {
+            "js": ["content.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
     "manifest_version": 2
   }
