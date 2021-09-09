@@ -32,3 +32,7 @@ Steps:
 -   Create logo
 -   Improve popup menu styling
 -   Improve plugin wording
+
+# Inspiration
+
+The hugely popular [Video Speed Controller](https://github.com/igrigorik/videospeed) was the inspiration for this project. I'm a huge fan of the plugin and had been using it for years before writing this.
