@@ -3,6 +3,19 @@
 The desire for this project was to create a simple and easily auditable HTML video speed controller.
 No longer will you have to worry that the 5,000 line video controller you downloaded is doing something sneaky behind your back.
 
+# How to Download
+
+This is currently more difficult than it should be because I haven't bothered to add this to the Chrome Web Store.
+
+Steps:
+
+1. Clone this repo
+2. Navigate to chrome://extensions/ in Chrome or whatever the same is in Chromium / Brave
+3. Click "Load Unpacked"
+4. Click the Chrome folder inside the project you cloned
+5. Success!
+6. Note to self, make this easier in the future
+
 # Current Functionality
 
 -   Set hotkeys to control video speed
