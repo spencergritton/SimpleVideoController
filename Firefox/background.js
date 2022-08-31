@@ -1,7 +1,7 @@
 // Initialize plugin on install
-chrome.runtime.onInstalled.addListener(function () {
+browser.runtime.onInstalled.addListener(function () {
 	console.log('Installed plugin');
-	chrome.storage.sync.set({
+	browser.storage.local.set({
 		increaseSpeedKey: 'D',
 		decreaseSpeedKey: 'S',
 		toggleOverlayKey: 'Q',
@@ -9,30 +9,30 @@ chrome.runtime.onInstalled.addListener(function () {
 		persistentCurrentSpeed: 1.0,
 		persistentSpeed: true,
 		showOverlay: true,
-		logLevel: 1,
+		logLevel: 0,
 	});
 });
 
 // Listens for updates on SPA's and executes content script when update occurs
-chrome.webNavigation.onHistoryStateUpdated.addListener(
+browser.webNavigation.onHistoryStateUpdated.addListener(
 	debounce(function () {
-		chrome.tabs.executeScript(null, { file: 'content.js' });
+		browser.tabs.executeScript(null, { file: 'content.js' });
 	}, 250)
 );
 
 // Listen for messages from content script
-chrome.runtime.onMessage.addListener(function (request) {
+browser.runtime.onMessage.addListener(function (request) {
 	// Logger
 	if (request.type === 'console') {
 		console.log(request.message);
 	}
 	// Listen for request to refresh current page
 	else if (request.type === 'refresh') {
-		chrome.tabs.query(
+		browser.tabs.query(
 			{ active: true, currentWindow: true },
 			function (arrayOfTabs) {
 				var code = 'window.location.reload();';
-				chrome.tabs.executeScript(arrayOfTabs[0].id, { code: code });
+				browser.tabs.executeScript(arrayOfTabs[0].id, { code: code });
 			}
 		);
 	}
@@ -64,9 +64,9 @@ function debounce(func, wait, immediate) {
 // Listens for URL changes on SPA's (before they change DOM)
 // If url change send message to content script telling it to clear event listeners
 // before page update
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+browser.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (changeInfo.url) {
-		chrome.tabs.sendMessage(tabId, {
+		browser.tabs.sendMessage(tabId, {
 			message: 'url_change',
 		});
 	}

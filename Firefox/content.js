@@ -4,7 +4,7 @@ var videos = undefined;
 
 // Runs before page change on SPA's with persistent speed to remove event
 // listeners from DOM
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 	if (request.message === 'url_change') {
 		if (settings.persistentSpeed) {
 			removeOverlaysAndListeners();
@@ -21,7 +21,7 @@ function runContentScript() {
 	videos = document.getElementsByTagName('video');
 
 	// Set settings object to chrome storage
-	chrome.storage.sync.get(null, function (items) {
+	browser.storage.local.get(null, function (items) {
 		settings = items;
 
 		// Initialize speedometer
@@ -50,12 +50,12 @@ function runContentScript() {
 }
 
 // Logger
-function log(message) {
-	if (settings.logLevel === 0) {
+function log(message, level) {
+	if (level === 0) {
 		return;
 	} else {
 		console.log(message);
-		chrome.runtime.sendMessage({ type: 'console', message: message });
+		browser.runtime.sendMessage({ type: 'console', message: message });
 	}
 }
 
@@ -91,7 +91,7 @@ function initializeOverlay() {
 		}
 		text.className = 'svc-p';
 		text.style.position = 'relative';
-		text.style.color = 'white';
+		text.style.color = 'red';
 		text.style.marginBottom = '2px';
 		text.style.marginTop = '2px';
 		text.style.marginLeft = '5px';
@@ -108,7 +108,7 @@ function initializeOverlay() {
 
 // Function called when key is pressed to attempt to call hotkey/shortcut
 function keypress(event) {
-	log(event);
+	log(event, settings.logLevel);
 	let key = event.key.toUpperCase();
 
 	// Ignore key press if modified
@@ -121,7 +121,7 @@ function keypress(event) {
 		event.getModifierState('Hyper') ||
 		event.getModifierState('OS')
 	) {
-		log('Keydown event ignored due to active modifier');
+		log('Keydown event ignored due to active modifier', settings.logLevel);
 		return;
 	}
 
@@ -131,13 +131,19 @@ function keypress(event) {
 		event.target.nodeName === 'TEXTAREA' ||
 		event.target.isContentEditable
 	) {
-		log('Keydown event ignored due to typing in a field',);
+		log(
+			'Keydown event ignored due to typing in a field',
+			settings.logLevel
+		);
 		return;
 	}
 
 	// Ignore key press if there there is no video controller
 	if (document.getElementsByClassName('svc-div').length === 0) {
-		log('Keydown event ignored due to no video controller on page',);
+		log(
+			'Keydown event ignored due to no video controller on page',
+			settings.logLevel
+		);
 		return;
 	}
 
@@ -153,10 +159,10 @@ function executeKeyPress(key, videos) {
 			if (svcPs.length === 1) {
 				let svcP = svcPs[0];
 				let newSpeed = video.playbackRate + settings.speedModifier;
-				if (newSpeed <= 5) {
+				if (newSpeed <= 15) {
 					video.playbackRate = newSpeed;
 					svcP.innerText = newSpeed.toFixed(2);
-					chrome.storage.sync.set({
+					browser.storage.local.set({
 						persistentCurrentSpeed: newSpeed,
 					});
 				}
@@ -171,7 +177,7 @@ function executeKeyPress(key, videos) {
 				if (newSpeed >= 0.1) {
 					video.playbackRate = newSpeed;
 					svcP.innerText = newSpeed.toFixed(2);
-					chrome.storage.sync.set({
+					browser.storage.local.set({
 						persistentCurrentSpeed: newSpeed,
 					});
 				}
@@ -182,10 +188,10 @@ function executeKeyPress(key, videos) {
 		for (const div of svcDIVs) {
 			div.style.display = settings.showOverlay ? 'none' : 'block';
 		}
-		chrome.storage.sync.set({ showOverlay: !settings.showOverlay });
+		browser.storage.local.set({ showOverlay: !settings.showOverlay });
 		settings.showOverlay = !settings.showOverlay;
 	} else {
-		log('Input key matches no given key combos');
+		log('Input key matches no given key combos', settings.logLevel);
 		return;
 	}
 }
