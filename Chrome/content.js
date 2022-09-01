@@ -29,7 +29,7 @@ function runContentScript() {
 
 		// If persistent speed, set all videos on page to persistent speed
 		// Timeout set because on SPA updates youtube will set videos back to their default rate
-		// There is definitely a better way to do this that I will look into
+		// There is definitely a better way to do this...
 		setTimeout(() => {
 			if (settings.persistentSpeed) {
 				for (const video of videos) {
@@ -39,27 +39,14 @@ function runContentScript() {
 		}, 1000);
 
 		// Add event listeners for keydowns to trigger plugin functionality
-		var docs = Array(document);
+		var doc = Array(document)[0];
 
-		for (const doc of docs) {
-			doc.removeEventListener('keydown', keypress);
-			doc.addEventListener('keydown', keypress, false);
-			break;
-		}
+		doc.removeEventListener('keydown', keypress);
+		doc.addEventListener('keydown', keypress, false);
 	});
 }
 
-// Logger
-function log(message) {
-	if (settings.logLevel === 0) {
-		return;
-	} else {
-		console.log(message);
-		chrome.runtime.sendMessage({ type: 'console', message: message });
-	}
-}
-
-// Initialize Overlay
+// Creates the speed overlay in the top left side of the video player
 function initializeOverlay() {
 	const svcDivs = document.getElementsByClassName('svc-div');
 	if (svcDivs.length > 0) {
@@ -68,7 +55,7 @@ function initializeOverlay() {
 		removeOverlaysAndListeners();
 	}
 
-	// Create overlay for each video on page
+	// Create overlay for each video on the page
 	for (const video of videos) {
 		// Create overlay div
 		let svcDiv = document.createElement('DIV');
@@ -190,7 +177,6 @@ function executeKeyPress(key, videos) {
 	}
 }
 
-// This function removes all current overlays and event listeners on the page
 function removeOverlaysAndListeners() {
 	let overlays = document.getElementsByClassName('svc-div');
 	for (const div of overlays) {
@@ -201,4 +187,13 @@ function removeOverlaysAndListeners() {
 	docs.forEach(function (doc) {
 		doc.removeEventListener('keydown', keypress);
 	});
+}
+
+function log(message) {
+	if (settings.logLevel === 0) {
+		return;
+	} else {
+		console.log(message);
+		chrome.runtime.sendMessage({ type: 'console', message: message });
+	}
 }

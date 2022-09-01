@@ -22,10 +22,10 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener(function (request) {
-	// Logger
 	if (request.type === 'console') {
 		console.log(request.message);
 	}
+
 	// Listen for request to refresh current page
 	else if (request.type === 'refresh') {
 		chrome.tabs.query(
@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(function (request) {
 	}
 });
 
-// Debounce helper
+// Debounce waits a given time period to call a function if it is called many times
 function debounce(func, wait, immediate) {
 	var timeout;
 

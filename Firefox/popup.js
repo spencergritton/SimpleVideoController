@@ -7,8 +7,9 @@ const persistentSpeed = document.getElementById('persistentSpeed');
 const showOverlay = document.getElementById('showOverlay');
 const keyBindingRegex = /[a-zA-Z0-9,./;'\[\]\-_=+{}:"<>?|\\]+/
 
-// Run when popup.html loads
 initializeValues();
+
+// Grabs values from storage to display on the popup controller
 function initializeValues() {
     browser.storage.local.get(['increaseSpeedKey'], function (data) {
         increaseSpeedKey.value = data.increaseSpeedKey

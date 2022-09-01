@@ -9,7 +9,7 @@ browser.runtime.onInstalled.addListener(function () {
 		persistentCurrentSpeed: 1.0,
 		persistentSpeed: true,
 		showOverlay: true,
-		logLevel: 0,
+		logLevel: 1,
 	});
 });
 
@@ -22,10 +22,10 @@ browser.webNavigation.onHistoryStateUpdated.addListener(
 
 // Listen for messages from content script
 browser.runtime.onMessage.addListener(function (request) {
-	// Logger
 	if (request.type === 'console') {
 		console.log(request.message);
 	}
+
 	// Listen for request to refresh current page
 	else if (request.type === 'refresh') {
 		browser.tabs.query(
@@ -38,7 +38,7 @@ browser.runtime.onMessage.addListener(function (request) {
 	}
 });
 
-// Debounce helper
+// Debounce waits a given time period to call a function if it is called many times
 function debounce(func, wait, immediate) {
 	var timeout;
 
