@@ -4,7 +4,11 @@ The desire for this project was to create a simple, easily auditable, and mainta
 
 ![Plugin Photo](docs/plugin.jpg)
 
-# How to Download
+# Typical Installation
+
+For Firefox, go to https://addons.mozilla.org/firefox/addon/simple-video-controller/
+
+# Manual Installation
 
 This is currently more difficult than it should be because I haven't bothered to add this to the Chrome Web Store.
 
